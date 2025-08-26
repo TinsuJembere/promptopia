@@ -2,7 +2,7 @@
 
 Proptopia is a cutting-edge real estate platform built with Next.js, MongoDB, and Tailwind CSS. This application provides a seamless experience for property browsing, searching, and management.
 
-![Proptopia Logo](/public/logo.png)
+you can watch it live on https://promptopia-lo4p.vercel.app/
 
 ## 🚀 Features
 
