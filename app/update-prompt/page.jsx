@@ -1,14 +1,17 @@
 "use client";
-import { useEffect, useState } from "react";
+
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import Form from "@components/Form";
 
-const EditPrompt = () => {
+// Inner component that actually uses useSearchParams
+function EditPromptContent() {
   const router = useRouter();
-  const [submitting, setSubmitting] = useState(false);
   const searchParams = useSearchParams();
   const promptId = searchParams.get("id");
+
+  const [submitting, setSubmitting] = useState(false);
   const [post, setPost] = useState({
     prompt: "",
     tag: "",
@@ -16,7 +19,8 @@ const EditPrompt = () => {
 
   useEffect(() => {
     const getPromptDetails = async () => {
-      const response = await fetch(`api/prompt/${promptId}`);
+      const response = await fetch(`/api/prompt/${promptId}`);
+      if (!response.ok) return;
       const data = await response.json();
 
       setPost({
@@ -27,32 +31,33 @@ const EditPrompt = () => {
     if (promptId) getPromptDetails();
   }, [promptId]);
 
-    const updatePrompt = async (e) => {
-      e.preventDefault();
-      setSubmitting(true);
+  const updatePrompt = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
 
-      if(!promptId) return alert('Prompt Id not found')
-      try {
-        const response = await fetch(`/api/prompt/${promptId}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            prompt: post.prompt,
-            tag: post.tag,
-          }),
-        });
+    if (!promptId) return alert("Prompt Id not found");
 
-        if (response.ok) {
-          router.push("/");
-        }
-      } catch (error) {
-        console.error("Failed to edit prompt:", error);
-      } finally {
-        setSubmitting(false);
+    try {
+      const response = await fetch(`/api/prompt/${promptId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt: post.prompt,
+          tag: post.tag,
+        }),
+      });
+
+      if (response.ok) {
+        router.push("/");
       }
-    };
+    } catch (error) {
+      console.error("Failed to edit prompt:", error);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <Form
@@ -63,6 +68,13 @@ const EditPrompt = () => {
       handleSubmit={updatePrompt}
     />
   );
-};
+}
 
-export default EditPrompt;
+// Wrap it with Suspense for Next.js
+export default function EditPrompt() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <EditPromptContent />
+    </Suspense>
+  );
+}
